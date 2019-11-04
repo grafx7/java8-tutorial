@@ -1,7 +1,7 @@
-package functionalInterface;
+package Interface;
 
-public interface PersonFactory {
-    interface PersonFactory<P extends Person> {
+import main.Person;
 
-    }
+public interface PersonFactory<P extends Person> {
+    P create(String firstName, String lastName);
 }
