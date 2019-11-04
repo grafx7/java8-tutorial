@@ -1,4 +1,4 @@
-package main;
+package tutorials;
 
 public class Person {
     String firstName;

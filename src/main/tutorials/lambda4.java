@@ -1,6 +1,6 @@
-package main;
+package tutorials;
 
-import Interface.Converter;
+import interfaces.Converter;
 
 public class lambda4 {
     static int outerStaticNum;

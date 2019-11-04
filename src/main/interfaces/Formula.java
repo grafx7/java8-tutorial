@@ -1,4 +1,4 @@
-package Interface;
+package interfaces;
 
 public interface Formula {
     double calculate(int a);

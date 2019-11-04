@@ -1,8 +1,8 @@
-package main;
+package tutorials;
 
-import Interface.Converter;
-import Interface.Formula;
-import Interface.PersonFactory;
+import interfaces.Converter;
+import interfaces.Formula;
+import interfaces.PersonFactory;
 
 import java.lang.reflect.Field;
 import java.time.*;

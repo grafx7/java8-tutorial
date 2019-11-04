@@ -1,4 +1,4 @@
-package Interface;
+package interfaces;
 
 @FunctionalInterface
 public interface Converter<F, T> {

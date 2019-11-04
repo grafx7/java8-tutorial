@@ -1,6 +1,6 @@
-package Interface;
+package interfaces;
 
-import main.Person;
+import tutorials.Person;
 
 public interface PersonFactory<P extends Person> {
     P create(String firstName, String lastName);

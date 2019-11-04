@@ -1,4 +1,4 @@
-package main;
+package tutorials;
 
 public class Something {
     public String startWith(String s){

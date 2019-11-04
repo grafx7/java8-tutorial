@@ -1,4 +1,4 @@
-package main;
+package tutorials;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
