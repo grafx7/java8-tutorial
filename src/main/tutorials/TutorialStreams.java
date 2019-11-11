@@ -1,12 +1,15 @@
 package tutorials;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import tutorials.streamiterator.FibonacciIterator;
+import tutorials.streamspliterator.FibonacciSpliterator;
 
-import java.io.InputStream;
+import java.math.BigInteger;
+import java.rmi.MarshalledObject;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.*;
 
 import static java.util.stream.Collectors.joining;
@@ -687,7 +690,210 @@ public class TutorialStreams {
         // unique: 1-2-3-9-5-4-8
 
         //Spliterator
+        long count2 = StreamSupport.stream(
+                Arrays.asList(0, 1, 2, 3).spliterator(), true)
+                .count();
 
+        Spliterator<Integer> s6 = IntStream.range(0, 4)
+        .boxed()
+        .collect(Collectors.toSet())
+        .spliterator();
+        long count3 = StreamSupport.stream(s6, true).count();
+        System.out.println(count3);
+
+        Arrays.spliterator(new int[] {0, 1, 2, 3});
+        Stream.of(0, 1, 2, 3).spliterator();
+
+        //Реализация сплитератора
+        long count4 = StreamSupport.stream(new FibonacciSpliterator(500), true)
+                .count();
+        System.out.println(count4);
+
+        //Стрим из итератора
+        StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(
+                        new FibonacciIterator(),
+                        Spliterator.ORDERED | Spliterator.SORTED),
+                false /* is parallel*/)
+                .limit(10)
+                .forEach(System.out::println);
+
+        //Stream.iterate + map
+        Stream.iterate(
+                new BigInteger[] { BigInteger.ZERO, BigInteger.ONE },
+                t -> new BigInteger[] { t[1], t[0].add(t[1]) })
+                .map(t -> t[0])
+                .limit(10)
+                .forEach(System.out::println);
+
+        //Примеры
+        //Дан массив аргументов. Нужно получить Map, где каждому ключу будет соответствовать своё значение.
+        String[] arguments = {"-i", "in.txt", "--limit", "40", "-d", "1", "-o", "out.txt"};
+        Map<String, String> argsMap = new LinkedHashMap<>(arguments.length / 2);
+        for (int i =0; i< arguments.length; i+=2){
+            argsMap.put(arguments[i], arguments[i + 1]);
+        }
+        argsMap.forEach((key, value2) -> System.out.format("%s: %s%n", key, value2));
+
+        String[] args1 = argsMap.entrySet().stream()
+                .flatMap(e -> Stream.of(e.getKey(), e.getValue()))
+                .toArray(String[]::new);
+        System.out.println(String.join(" ", args1));                 // -i in.txt --limit 40 -d 1 -o out.txt
+
+        List<Student> students = Arrays.asList(
+                new Student("Alex", Speciality.Physics, 1),
+                new Student("Rika", Speciality.Biology, 4),
+                new Student("Julia", Speciality.Biology, 2),
+                new Student("Steve", Speciality.History, 4),
+                new Student("Mike", Speciality.Finance, 1),
+                new Student("Hinata", Speciality.Biology, 2),
+                new Student("Richard", Speciality.History, 1),
+                new Student("Kate", Speciality.Psychology, 2),
+                new Student("Sergey", Speciality.ComputerScience, 4),
+                new Student("Maximilian", Speciality.ComputerScience, 3),
+                new Student("Tim", Speciality.ComputerScience, 5),
+                new Student("Ann", Speciality.Psychology, 1)
+        );
+
+        //Нужно сгруппировать всех студентов по курсу.
+        students.stream()
+                .collect(Collectors.groupingBy(Student::getYear))
+                .entrySet().forEach(System.out::println);
+        // 1=[Alex: Physics 1, Mike: Finance 1, Richard: History 1, Ann: Psychology 1]
+        // 2=[Julia: Biology 2, Hinata: Biology 2, Kate: Psychology 2]
+        // 3=[Maximilian: ComputerScience 3]
+        // 4=[Rika: Biology 4, Steve: History 4, Sergey: ComputerScience 4]
+        // 5=[Tim: ComputerScience 5]
+
+        //Вывести в алфавитном порядке список специальностей, на которых учатся перечисленные в списке студенты.
+        students.stream()
+                .map(Student::getSpeciality)
+                .distinct()
+                .sorted(Comparator.comparing(Enum::name))
+                .forEach(System.out::println);
+        // Biology
+        // ComputerScience
+        // Finance
+        // History
+        // Physics
+        // Psychology
+
+        //Вывести количество учащихся на каждой из специальностей.
+        students.stream()
+                .collect(Collectors.groupingBy(
+                        Student::getSpeciality, Collectors.counting()))
+                .forEach((s7, count5) -> System.out.println(s7 + ": " + count5));
+        // Psychology: 2
+        // Physics: 1
+        // ComputerScience: 3
+        // Finance: 1
+        // Biology: 3
+        // History: 2
+
+        //Сгруппировать студентов по специальностям, сохраняя алфавитный порядок специальности, а затем сгруппировать по курсу.
+        Map<Speciality, Map<Integer, List<Student>>> result9 = students.stream()
+                .sorted(Comparator
+                        .comparing(Student::getSpeciality, Comparator.comparing(Enum::name))
+                        .thenComparing(Student::getYear)
+                )
+                .collect(Collectors.groupingBy(
+                        Student::getSpeciality,
+                        LinkedHashMap::new,
+                        Collectors.groupingBy(Student::getYear)
+                ));
+
+        //Теперь это всё красиво вывести.
+        result9.forEach((s10, map10) -> {
+            System.out.println("-= " + s10 + " =-");
+            map10.forEach((year, list9) -> System.out.format("%d: %s%n", year, list9.stream()
+                    .map(Student::getName)
+                    .sorted()
+                    .collect(Collectors.joining(", ")))
+            );
+            System.out.println();
+        });
+        //-= Biology =-
+        //2: Hinata, Julia
+        //4: Rika
+        //
+        //-= ComputerScience =-
+        //3: Maximilian
+        //4: Sergey
+        //5: Tim
+        //
+        //-= Finance =-
+        //1: Mike
+        //
+        //-= History =-
+        //1: Richard
+        //4: Steve
+        //
+        //-= Physics =-
+        //1: Alex
+        //
+        //-= Psychology =-
+        //1: Ann
+        //2: Kate
+
+        //Проверить, есть ли третьекурсники среди учащихся всех специальностей кроме физики и CS.
+        students.stream()
+                .filter(s13 -> !EnumSet.of(Speciality.ComputerScience, Speciality.Physics)
+                        .contains(s13.getSpeciality()))
+                .anyMatch(s11 -> s11.getYear() == 3);                                               // false
+
+        //Вычислить число Пи методом Монте-Карло.
+        final Random rnd = new Random();
+        final double r = 1000.0;
+        final int max10 = 10000000;
+        long count12 = IntStream.range(0, max10)
+                .mapToObj(i -> rnd.doubles(2).map(x -> x * r).toArray())
+                .parallel()
+                .filter(arr11 -> Math.hypot(arr11[0], arr11[1]) <= r)
+                .count();
+        System.out.println(4.0 * count12 / max10);                                                  // 3.1415344
+
+        //Вывести таблицу умножения.
+        IntStream.rangeClosed(2, 9)
+                .boxed()
+                .flatMap(i -> IntStream.rangeClosed(2, 9)
+                        .mapToObj(j -> String.format("%d * %d = %d", i, j, i * j))
+                )
+                .forEach(System.out::println);
+        // 2 * 2 = 4
+        // 2 * 3 = 6
+        // 2 * 4 = 8
+        // 2 * 5 = 10
+        // ...
+        // 9 * 7 = 63
+        // 9 * 8 = 72
+        // 9 * 9 = 81
+
+        //Или более экзотический вариант, в 4 столбца, как на школьных тетрадях.
+        IntFunction<IntFunction<String>> function = i -> j -> String.format("%d x %2d = %2d", i, j, i * j);
+        IntFunction<IntFunction<IntFunction<String>>> repeaterX = count8 -> i -> j ->
+                IntStream.range(0, count8)
+                        .mapToObj(delta -> function.apply(i + delta).apply(j))
+                        .collect(Collectors.joining("\t"));
+        IntFunction<IntFunction<IntFunction<IntFunction<String>>>> repeaterY = countY -> countX -> i -> j ->
+                IntStream.range(0, countY)
+                        .mapToObj(deltaY -> repeaterX.apply(countX).apply(i).apply(j + deltaY))
+                        .collect(Collectors.joining("\n"));
+        IntFunction<String> row = i -> repeaterY.apply(10).apply(4).apply(i).apply(1) + "\n";
+        IntStream.of(2, 6).mapToObj(row).forEach(System.out::println);
+
+        IntStream.range(5, 30)
+                .limit(12)
+                .skip(3)
+                .limit(6)
+                .skip(2)
+                .forEach(System.out::println);                      //10, 11, 12, 13
+
+        System.out.println();
+
+        IntStream.range(5, 30)
+                .limit(12)
+                .skip(3)
+                .forEach(System.out::println);
 
         System.out.println();
 
