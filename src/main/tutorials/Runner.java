@@ -45,8 +45,45 @@ public class Runner {
                 .collect(Collectors.toList());
 
         System.out.println();
+        int [] arr1 = new int[] {0,4,5,3,8,0,2,8,3,0,0,4,4,0};
+        int[] arr2 = sort1(arr1);
+        for (int a: arr2){
+            System.out.print(a);
+        }
 
     }
+
+    public static  int[] sort(int[] arr1){
+        int n = arr1.length;
+        int arr2[] = new int[n];
+
+        int indexLeft = 0;
+        int indexRight = n - 1;
+        for (int elem : arr1){
+            if (elem == 0){
+                arr2[indexRight--] = 0;
+            } else {
+                arr2[indexLeft++] = elem;
+            }
+        }
+        assert indexLeft > indexRight;
+        return arr2;
+   }
+
+   public static int[] sort1(int[] arr) {
+       int lastIndex = arr.length - 1;
+       for (int i = arr.length -1; i >= 0; i--) {
+           if (arr[i] == 0) {
+               if (i == lastIndex) {
+                   lastIndex--;
+               } else {
+                   arr[i] = arr[lastIndex];
+                   arr[lastIndex--] = 0;
+               }
+           }
+       }
+       return arr;
+   }
 
     public static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
         return asStream(sourceIterator, false);
